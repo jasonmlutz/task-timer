@@ -44,6 +44,9 @@ group :development, :test do
   gem "debug", platforms: %i[ mri mingw x64_mingw ]
   # rspec-rails brings the RSpec testing framework to Ruby on Rails as a drop-in alternative to its default testing framework, Minitest. See https://github.com/rspec/rspec-rails
   gem 'rspec-rails', '~> 6.0.0.rc1'
+  # https://betterprogramming.pub/how-to-set-up-linters-and-formatters-for-vs-code-and-ruby-on-rails-287394540754
+  gem 'rubocop', require: false
+  gem 'rubocop-rails', require: false
 end
 
 group :development do
