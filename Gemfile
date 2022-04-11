@@ -67,4 +67,5 @@ group :test do
   gem "selenium-webdriver"
   gem "webdrivers"
   gem 'rspec', '~> 3.0'
+  gem 'shoulda-matchers', '~> 5.0'
 end
