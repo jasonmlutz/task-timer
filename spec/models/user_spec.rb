@@ -1,30 +1,45 @@
-# spec/models/user_spec.rb
 require 'rails_helper'
 
 RSpec.describe User, type: :model do
-  context 'Validations' do
-    context 'Username presence' do
-      it 'Empty string is invalid' do
-        user = User.new(name: '', password: 'password')
-        expect(user.valid?).to eq(false)
-      end
-      it 'Non-empty string is valid' do
-        user = User.new(name: 'jason', password: 'password')
-        expect(user.valid?).to eq(true)
-      end
-      it 'Name must be passed' do
-        user = User.new(password: 'password')
-        expect(user.valid?).to eq(false)
+  describe 'Validations' do
+    context 'when username is empty string' do
+      it 'User is not valid' do
+        user = described_class.new(name: '', password: 'password')
+        expect(user.valid?).to be(false)
       end
     end
-    it 'Validates username uniqueness' do
-      bob = User.create(name: 'bob', password: 'password')
-      alice = User.new(name: 'alice', password: 'password')
-      bobJr = User.new(name: 'bob', password: 'passwordJr')
-      expect(alice.valid?).to eq(true)
-      expect(bobJr.valid?).to eq(false)
+
+    context 'when username is not empty' do
+      it 'User is valid' do
+        user = described_class.new(name: 'jason', password: 'password')
+        expect(user.valid?).to be(true)
+      end
+    end
+
+    context 'when name is not passed' do
+      it 'User is not valid' do
+        user = described_class.new(password: 'password')
+        expect(user.valid?).to be(false)
+      end
+    end
+
+    context 'when name is not unique' do
+      it 'User is not valid' do
+        described_class.create(name: 'bob', password: 'password')
+        bob_jr = described_class.new(name: 'bob', password: 'passwordJr')
+        expect(bob_jr.valid?).to be(false)
+      end
+    end
+
+    context 'when name is unique' do
+      it 'User is not valid' do
+        described_class.create(name: 'bob', password: 'password')
+        alice = described_class.new(name: 'alice', password: 'password')
+        expect(alice.valid?).to be(true)
+      end
     end
   end
 
-  context 'Authentication'
+  # context 'Authentication' do
+  # end
 end

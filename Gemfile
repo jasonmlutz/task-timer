@@ -47,6 +47,7 @@ group :development, :test do
   # https://betterprogramming.pub/how-to-set-up-linters-and-formatters-for-vs-code-and-ruby-on-rails-287394540754
   gem 'rubocop', require: false
   gem 'rubocop-rails', require: false
+  gem 'rubocop-rspec', require: false
 end
 
 group :development do
