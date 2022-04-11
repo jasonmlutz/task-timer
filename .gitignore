@@ -18,6 +18,9 @@
 !/tmp/pids/
 !/tmp/pids/.keep
 
+# testing
+/coverage
+
 
 /public/assets
 
