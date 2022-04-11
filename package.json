@@ -7,6 +7,10 @@
     "esbuild": "^0.14.34"
   },
   "scripts": {
-    "build": "esbuild app/javascript/*.* --bundle --sourcemap --outdir=app/assets/builds"
+    "build": "esbuild app/javascript/*.* --bundle --sourcemap --outdir=app/assets/builds",
+    "test": "jest --watch"
+  },
+  "devDependencies": {
+    "jest": "^27.5.1"
   }
 }
