@@ -1,9 +1,10 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 
-import App from "./components/App"
+import App from './components/App';
 
-export const container = document.getElementById("root");
+const container = document.getElementById('root');
 
 // create a root
 const root = ReactDOM.createRoot(container);
@@ -11,6 +12,8 @@ const root = ReactDOM.createRoot(container);
 // initial render
 root.render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>
-)
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>,
+);

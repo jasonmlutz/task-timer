@@ -1,8 +1,14 @@
 import React from 'react';
+import { useRoutes } from 'react-router-dom';
+
+import NewUserForm from './Users/NewUserForm';
 
 function App() {
+  const routes = useRoutes([
+    { path: '/', element: <NewUserForm /> },
+  ]);
   return (
-    <div>App</div>
+    <div>{routes}</div>
   );
 }
 

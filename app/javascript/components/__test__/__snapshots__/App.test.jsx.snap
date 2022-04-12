@@ -2,6 +2,8 @@
 
 exports[`App component STATIC TESTS renders correctly from snapshot 1`] = `
 <div>
-  App
+  <div>
+    NewUserForm - Mocked
+  </div>
 </div>
 `;
