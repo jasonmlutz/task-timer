@@ -2,12 +2,18 @@ require 'rails_helper'
 
 RSpec.describe User, type: :model do
   describe 'Validations' do
-    it { should validate_presence_of(:name) }
-    it { should validate_uniqueness_of(:name) }
+    before do
+      User.create(name: 'shouldTest', password: 'shouldaPassword')
+    end
+    after do
+      User.destroy_all
+    end
+    it { is_expected.to validate_presence_of(:name) }
+    it { is_expected.to validate_uniqueness_of(:name) }
   end
 
   describe 'Authentication' do
-    before(:each) do
+    before do
       described_class.destroy_all
       @user = described_class.create(name: 'jason', password: 'password')
     end
@@ -26,6 +32,7 @@ RSpec.describe User, type: :model do
         expect(result).to be(false)
       end
     end
+
     context 'with incorrect name' do
       it 'returns nil' do
         described_class.create(name: 'jason', password: 'password')
@@ -33,6 +40,7 @@ RSpec.describe User, type: :model do
         expect(result).to be_nil
       end
     end
+
     context 'with incorrect name and password' do
       it 'returns nil' do
         described_class.create(name: 'jason', password: 'password')
