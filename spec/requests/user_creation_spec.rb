@@ -12,6 +12,8 @@ RSpec.describe 'User creation', type: :request do
         headers = { 'CONTENT_TYPE' => 'application/json' }
         post api_users_url, params: { name: 'jason', password: 'goodPassword' }.to_json, headers:
       end
+      expect(JSON.parse(response.body).keys).to eq(%w[id name password_digest created_at updated_at])
+      expect(JSON.parse(response.body)['name']).to eq('jason')
       expect(User.find_by(name: 'jason')).not_to be_nil
     end
 
