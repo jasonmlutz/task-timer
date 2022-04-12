@@ -7,11 +7,15 @@ RSpec.describe User, type: :model do
   end
 
   describe 'Authentication' do
+    before(:each) do
+      described_class.destroy_all
+      @user = described_class.create(name: 'jason', password: 'password')
+    end
+
     context 'with correct credentials' do
       it 'returns the correct user' do
-        user = described_class.create(name: 'jason', password: 'password')
         found = described_class.find_by(name: 'jason')&.authenticate('password')
-        expect(found).to eq(user)
+        expect(found).to eq(@user)
       end
     end
 
