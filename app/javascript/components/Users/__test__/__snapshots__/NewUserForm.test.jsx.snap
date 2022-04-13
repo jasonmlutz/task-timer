@@ -19,29 +19,48 @@ exports[`NewUserForm component STATIC TESTS renders correctly from snapshot 1`] 
         className="p-6 mt-8"
       >
         <form>
-          <input
-            className="rounded-lg flex-1 appearance-none border border-gray-300 w-full py-2 px-4 bg-white text-gray-700 placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-indigo-600 mb-2"
-            onChange={[Function]}
-            placeholder="Name"
-            type="text"
-            value=""
-          />
-          <input
-            className="rounded-lg flex-1 appearance-none border border-gray-300 w-full py-2 px-4 bg-white text-gray-700 placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-indigo-600 mb-2"
-            onChange={[Function]}
-            placeholder="Password"
-            type="password"
-            value=""
-          />
-          <input
-            className="rounded-lg flex-1 appearance-none border border-gray-300 w-full py-2 px-4 bg-white text-gray-700 placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-indigo-600 mb-2"
-            onChange={[Function]}
-            placeholder="Confirm Password"
-            type="password"
-            value=""
-          />
+          <label
+            htmlFor="name"
+          >
+            Name:
+            <input
+              className="rounded-lg flex-1 appearance-none border border-gray-300 w-full py-2 px-4 bg-white text-gray-700 placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-indigo-600 mb-2"
+              id="name"
+              onChange={[Function]}
+              placeholder="please select a user name"
+              type="text"
+              value=""
+            />
+          </label>
+          <label
+            htmlFor="password"
+          >
+            Password:
+            <input
+              className="rounded-lg flex-1 appearance-none border border-gray-300 w-full py-2 px-4 bg-white text-gray-700 placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-indigo-600 mb-2"
+              id="password"
+              onChange={[Function]}
+              placeholder="enter a password"
+              type="password"
+              value=""
+            />
+          </label>
+          <label
+            htmlFor="password_confirmation"
+          >
+            Confirm Password:
+            <input
+              className="rounded-lg flex-1 appearance-none border border-gray-300 w-full py-2 px-4 bg-white text-gray-700 placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-indigo-600 mb-2"
+              id="password_confirmation"
+              onChange={[Function]}
+              placeholder="please re-enter your password"
+              type="password"
+              value=""
+            />
+          </label>
           <button
-            className="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500 focus:ring-offset-indigo-200 text-white w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg"
+            className="py-2 px-4 bg-gray-600 text-white w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md rounded-lg cursor-not-allowed"
+            disabled={true}
             onClick={[Function]}
             type="submit"
           >
