@@ -25,9 +25,8 @@ beforeEach(() => {
   enableFetchMocks();
   resetMocks();
   container = document.createElement('div');
-  container.setAttribute('name', 'csrf-token');
-  container.innerHTML = 'valid-csrf-token';
   document.body.appendChild(container);
+  // POST, PATCH, DELETE requests expect to find the X-CSRF-TOKEN to send to Rails
   const meta = document.createElement('meta');
   meta.setAttribute('name', 'csrf-token');
   meta.setAttribute('content', 'valid-csrf-token');
@@ -37,11 +36,6 @@ beforeEach(() => {
       <NewUserForm />,
     );
   });
-  // POST, PATCH, DELETE requests expect to find the X-CSRF-TOKEN to send to Rails
-  // const tokenContainer = document.createElement('div');
-  // tokenContainer.setAttribute('name', 'csrf-token');
-  // tokenContainer.setAttribute('content', 'valid-csrf-token');
-  // container.appendChild(tokenContainer);
 });
 
 // GLOBAL TEARDOWN
@@ -312,6 +306,18 @@ describe('NewUserForm component', () => {
             password_confirmation: 'password',
           }),
         });
+      });
+      test('successful creation triggers console.log of user object', async () => {
+        fetchMock.mockResponseOnce(JSON.stringify({ user: 'object' }));
+        const logMock = jest.spyOn(console, 'log').mockImplementation();
+        await act(async () => {
+          fireEvent.change(nameField, { target: { value: 'validName' } });
+          fireEvent.change(passwordField, { target: { value: 'password' } });
+          fireEvent.change(passwordConfirmField, { target: { value: 'password' } });
+          fireEvent.click(registerButton);
+        });
+        expect(logMock).toBeCalled();
+        expect(logMock).toBeCalledWith({ user: 'object' });
       });
       test.todo('successful creation triggers navigate call to profile');
       test.todo('successful creation sets current user state');

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+import { getRequest, postRequest } from '../../resources/requests';
+
 function NewUserForm() {
   const [credentials, setCredentials] = useState({
     name: '',
@@ -13,53 +15,9 @@ function NewUserForm() {
     renderMessage: false,
   });
 
-  async function checkAvailability() {
-    let response = await fetch(`/api/check_availability/${credentials.name}`);
-
-    if (!response.ok) {
-      const message = `An error has occurred: ${response.statusText}`;
-      window.alert(message);
-      return;
-    }
-
-    response = await response.json();
-    const available = response.name_available;
-    setNameAvailability(
-      {
-        name: credentials.name,
-        available,
-        renderMessage: true,
-      },
-    );
-  }
-
-  async function registerUser() {
-    const response = await fetch('/api/users', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('[name=csrf-token]').content,
-      },
-      body: JSON.stringify(credentials),
-    });
-
-    if (!response.ok) {
-      const message = `An error has occurred: ${response.statusText}`;
-      window.alert(message);
-      return;
-    }
-
-    const user = await response.json();
-    if (user.error) {
-      window.alert(user.error);
-    } else {
-      console.log(user);
-    }
-  }
-
   function preventRegistrationFormSubmit() {
-    return !credentials.name.length
-  || !credentials.password.length
+    return !credentials.name
+  || !credentials.password
   || !(credentials.password === credentials.password_confirmation);
   }
 
@@ -138,7 +96,17 @@ function NewUserForm() {
         disabled={preventRegistrationFormSubmit()}
         onClick={(e) => {
           e.preventDefault();
-          registerUser();
+          postRequest(
+            credentials,
+            '/api/users',
+            (user) => {
+              if (user.error) {
+                window.alert(user.error);
+              } else {
+                console.log(user);
+              }
+            },
+          );
         }}
       >
         Register
@@ -162,7 +130,19 @@ function NewUserForm() {
         disabled={credentials.name.length === 0}
         onClick={(e) => {
           e.preventDefault();
-          checkAvailability();
+          getRequest(
+            `/api/check_availability/${credentials.name}`,
+            (response) => {
+              const available = response.name_available;
+              setNameAvailability(
+                {
+                  name: credentials.name,
+                  available,
+                  renderMessage: true,
+                },
+              );
+            },
+          );
         }}
       >
         Check Availability
