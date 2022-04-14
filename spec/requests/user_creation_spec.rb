@@ -7,26 +7,63 @@ RSpec.describe 'User creation', type: :request do
   end
 
   context 'with unique username' do
-    it 'creates a user' do
-      assert_difference('User.count') do
-        headers = { 'CONTENT_TYPE' => 'application/json' }
-        post api_users_url, params: { name: 'jason', password: 'goodPassword' }.to_json, headers:
+    context 'with present and matching passwords' do
+      it 'creates a user' do
+        assert_difference('User.count') do
+          headers = { 'CONTENT_TYPE' => 'application/json' }
+          post api_users_url,
+               params: { name: 'jason', password: 'goodPassword', password_confirmation: 'goodPassword' }.to_json, headers:
+        end
+        expect(User.last.name).to eq('jason')
       end
-      expect(User.last.name).to eq('jason')
+
+      it 'correctly sets session' do
+        headers = { 'CONTENT_TYPE' => 'application/json' }
+        post api_users_url,
+             params: { name: 'jason', password: 'goodPassword', password_confirmation: 'goodPassword' }.to_json, headers: headers
+
+        expect(session['current_user_id']).to eq(User.last.id)
+      end
+
+      it 'returns the intended response' do
+        headers = { 'CONTENT_TYPE' => 'application/json' }
+        post api_users_url,
+             params: { name: 'jason', password: 'goodPassword', password_confirmation: 'goodPassword' }.to_json, headers: headers
+        expect(JSON.parse(response.body).keys).to eq(%w[id name password_digest created_at updated_at])
+        expect(JSON.parse(response.body)['name']).to eq('jason')
+      end
     end
 
-    it 'correctly sets session' do
-      headers = { 'CONTENT_TYPE' => 'application/json' }
-      post api_users_url, params: { name: 'jason', password: 'goodPassword' }.to_json, headers: headers
+    context 'with password validation errors' do
+      context 'with password confirmation missing' do
+        before do
+          headers = { 'CONTENT_TYPE' => 'application/json' }
+          post api_users_url, params: { name: 'jason', password: 'goodPassword' }.to_json, headers:
+        end
 
-      expect(session['current_user_id']).to eq(User.last.id)
-    end
+        it 'fails to create user' do
+          expect(User.last).to be_nil
+        end
 
-    it 'returns the intended response' do
-      headers = { 'CONTENT_TYPE' => 'application/json' }
-      post api_users_url, params: { name: 'jason', password: 'goodPassword' }.to_json, headers: headers
-      expect(JSON.parse(response.body).keys).to eq(%w[id name password_digest created_at updated_at])
-      expect(JSON.parse(response.body)['name']).to eq('jason')
+        it 'returns error message in body' do
+          expect(response.body).to eq({ error: 'object(s) not created' }.to_json)
+        end
+      end
+
+      context 'with non-matching passwords' do
+        before do
+          headers = { 'CONTENT_TYPE' => 'application/json' }
+          post api_users_url, params: { name: 'jason', password: 'goodPassword', password_confirmation: 'badPassword' }.to_json, headers:
+        end
+
+        it 'fails to create user' do
+          expect(User.last).to be_nil
+        end
+
+        it 'returns error message in body' do
+          expect(response.body).to eq({ error: 'object(s) not created' }.to_json)
+        end
+      end
     end
   end
 

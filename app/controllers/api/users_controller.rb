@@ -18,7 +18,7 @@ class Api::UsersController < ApplicationController
       render json: { error: 'name not available' }
     else
       @user = User.new(user_params)
-      if @user.save
+      if @user.password_confirmation && @user.save
         session[:current_user_id] = @user.id
         render json: @user
       else
