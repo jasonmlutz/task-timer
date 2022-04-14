@@ -5,7 +5,7 @@ import NewUserForm from './Users/NewUserForm';
 
 function App() {
   const routes = useRoutes([
-    { path: '/', element: <NewUserForm /> },
+    { path: '/register', element: <NewUserForm /> },
   ]);
   return (
     <div>{routes}</div>

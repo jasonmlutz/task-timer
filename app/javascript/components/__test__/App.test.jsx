@@ -10,11 +10,6 @@ import renderer from 'react-test-renderer';
 // COMPONENTS
 import App from '../App';
 
-// MOCKED IMPORTS
-jest.mock('../Users/NewUserForm', () => function NewUserForm() {
-  return <div>NewUserForm - Mocked</div>;
-});
-
 describe('App component', () => {
   describe('STATIC TESTS', () => {
     test('renders correctly from snapshot', () => {
