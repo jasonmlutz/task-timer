@@ -17,7 +17,12 @@ RSpec.describe 'User creation', type: :request do
       expect(User.find_by(name: 'jason')).not_to be_nil
     end
 
-    it 'correctly sets session'
+    it 'correctly sets session' do
+      headers = { 'CONTENT_TYPE' => 'application/json' }
+      post api_users_url, params: { name: 'jason', password: 'goodPassword' }.to_json, headers: headers
+
+      expect(session['current_user_id']).to eq(User.last.id)
+    end
   end
 
   context 'with non-unique username' do
