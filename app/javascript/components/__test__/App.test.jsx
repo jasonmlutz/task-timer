@@ -39,5 +39,10 @@ describe('App component', () => {
 
       expect(screen.getByText(/create new account/i)).toBeInTheDocument();
     });
+    test('/login renders NewSessionForm', () => {
+      renderWithRouter(<App />, { route: '/login' });
+
+      expect(screen.getByText(/login to your account/i)).toBeInTheDocument();
+    });
   });
 });

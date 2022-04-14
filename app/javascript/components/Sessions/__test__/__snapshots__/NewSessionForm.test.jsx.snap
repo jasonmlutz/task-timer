@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NewSessionForm component STATIC TESTS renders correctly from snapshot 1`] = `
+<div>
+  Login to your account
+</div>
+`;
