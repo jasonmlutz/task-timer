@@ -29,8 +29,7 @@ RSpec.describe 'User creation', type: :request do
         headers = { 'CONTENT_TYPE' => 'application/json' }
         post api_users_url,
              params: { name: 'jason', password: 'goodPassword', password_confirmation: 'goodPassword' }.to_json, headers: headers
-        expect(JSON.parse(response.body).keys).to eq(%w[id name password_digest created_at updated_at])
-        expect(JSON.parse(response.body)['name']).to eq('jason')
+        expect(response.body).to eq(User.last.to_json)
       end
     end
 
@@ -53,7 +52,8 @@ RSpec.describe 'User creation', type: :request do
       context 'with non-matching passwords' do
         before do
           headers = { 'CONTENT_TYPE' => 'application/json' }
-          post api_users_url, params: { name: 'jason', password: 'goodPassword', password_confirmation: 'badPassword' }.to_json, headers:
+          post api_users_url,
+               params: { name: 'jason', password: 'goodPassword', password_confirmation: 'badPassword' }.to_json, headers:
         end
 
         it 'fails to create user' do
