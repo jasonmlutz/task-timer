@@ -12,9 +12,7 @@ RSpec.describe 'User creation', type: :request do
         headers = { 'CONTENT_TYPE' => 'application/json' }
         post api_users_url, params: { name: 'jason', password: 'goodPassword' }.to_json, headers:
       end
-      expect(JSON.parse(response.body).keys).to eq(%w[id name password_digest created_at updated_at])
-      expect(JSON.parse(response.body)['name']).to eq('jason')
-      expect(User.find_by(name: 'jason')).not_to be_nil
+      expect(User.last.name).to eq('jason')
     end
 
     it 'correctly sets session' do
@@ -22,6 +20,13 @@ RSpec.describe 'User creation', type: :request do
       post api_users_url, params: { name: 'jason', password: 'goodPassword' }.to_json, headers: headers
 
       expect(session['current_user_id']).to eq(User.last.id)
+    end
+
+    it 'returns the intended response' do
+      headers = { 'CONTENT_TYPE' => 'application/json' }
+      post api_users_url, params: { name: 'jason', password: 'goodPassword' }.to_json, headers: headers
+      expect(JSON.parse(response.body).keys).to eq(%w[id name password_digest created_at updated_at])
+      expect(JSON.parse(response.body)['name']).to eq('jason')
     end
   end
 
