@@ -314,6 +314,7 @@ describe('NewUserForm component', () => {
         });
       });
       test.todo('successful creation triggers navigate call to profile');
+      test.todo('successful creation sets current user state');
       test('creation attempt but username unavailable triggers window alert', async () => {
         fetchMock.mockResponseOnce(JSON.stringify({ error: 'name not available' }));
         const alertMock = jest.spyOn(window, 'alert').mockImplementation();

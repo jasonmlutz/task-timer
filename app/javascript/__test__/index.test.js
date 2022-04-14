@@ -1,11 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import React from 'react';
 import ReactDOM from 'react-dom/client';
-
-// COMPONENTS
-import App from '../components/App';
 
 describe('APPLICATION ROOT', () => {
   describe('STATIC TESTS', () => {
@@ -17,12 +13,5 @@ describe('APPLICATION ROOT', () => {
       require('../index.jsx');
       expect(ReactDOM.createRoot).toHaveBeenCalledWith(div);
     });
-    test.todo('should call root.render');
-    // jest.spyOn(ReactDOM, "render")
-    // expect(render).toHaveBeenCalledWith(
-    //   <React.StrictMode>
-    //     <App />
-    //   </React.StrictMode>
-    // )
   });
 });
