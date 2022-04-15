@@ -20,7 +20,7 @@ class Api::UsersController < ApplicationController
       @user = User.new(user_params)
       if @user.password_confirmation && @user.save
         session[:current_user_id] = @user.id
-        render json: @user
+        render json: @user.expose
       else
         render json: { error: 'object(s) not created' }
       end

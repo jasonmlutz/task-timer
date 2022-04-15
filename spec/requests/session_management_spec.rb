@@ -18,8 +18,8 @@ RSpec.describe 'Session management', type: :request do
         expect(session['current_user_id']).to eq(User.find_by(name: 'jason').id)
       end
 
-      it 'returns the intended response' do
-        expect(response.body).to eq(User.last.to_json)
+      it 'returns user.expose as response body' do
+        expect(response.body).to eq(User.last.expose.to_json)
       end
     end
 
@@ -48,12 +48,12 @@ RSpec.describe 'Session management', type: :request do
     end
 
     context 'with current user' do
-      it 'returns current user details' do
+      it 'returns current user .expose as repsonse body' do
         headers = { 'CONTENT_TYPE' => 'application/json' }
         post api_session_url, params: { name: 'jason', password: 'password' }.to_json, headers: headers
         get api_session_url
 
-        expect(response.body).to eq(User.last.to_json)
+        expect(response.body).to eq(User.last.expose.to_json)
       end
     end
   end

@@ -25,11 +25,11 @@ RSpec.describe 'User creation', type: :request do
         expect(session['current_user_id']).to eq(User.last.id)
       end
 
-      it 'returns the intended response' do
+      it 'returns user.expose as the response body' do
         headers = { 'CONTENT_TYPE' => 'application/json' }
         post api_users_url,
              params: { name: 'jason', password: 'goodPassword', password_confirmation: 'goodPassword' }.to_json, headers: headers
-        expect(response.body).to eq(User.last.to_json)
+        expect(response.body).to eq(User.last.expose.to_json)
       end
     end
 

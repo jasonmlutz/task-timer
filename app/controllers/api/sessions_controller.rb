@@ -5,7 +5,7 @@ class Api::SessionsController < ApplicationController
   # GET /api/session
   def show
     if current_user
-      render json: current_user
+      render json: current_user.expose
     else
       render json: {}
     end
@@ -16,7 +16,7 @@ class Api::SessionsController < ApplicationController
     @user = User.find_by(name: params[:name])
     if @user && @user == @user.authenticate(params[:password])
       session[:current_user_id] = @user.id
-      render json: current_user
+      render json: current_user.expose
     else
       render json: { error: 'name and/or password incorrect' }
     end
