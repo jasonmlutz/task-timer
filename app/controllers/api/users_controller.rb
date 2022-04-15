@@ -1,4 +1,5 @@
 class Api::UsersController < ApplicationController
+  before_action :set_user, only: [:show]
   wrap_parameters false
 
   # GET /api/check_availability/:name
@@ -27,7 +28,20 @@ class Api::UsersController < ApplicationController
     end
   end
 
+  # GET /api/users/:id(.:format)
+  def show
+    if @user
+      render json: @user.expose
+    else
+      render json: { error: 'record(s) not found' }
+    end
+  end
+
   private
+
+  def set_user
+    @user = User.find_by(id: params[:id])
+  end
 
   def user_params
     params.permit(:name, :password, :password_confirmation)

@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
   namespace :api do
-    resources :users, only: [:create]
+    resources :users, only: [:create, :show]
     get 'check_availability/:name', to: 'users#check_availability', as: :user_name_availability
     resource :session, only: %i[create show destroy]
   end
