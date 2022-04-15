@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { getRequest, postRequest } from '../../resources/requests';
 
@@ -14,6 +15,8 @@ function NewUserForm() {
     available: false,
     renderMessage: false,
   });
+
+  const navigate = useNavigate();
 
   function preventRegistrationFormSubmit() {
     return !credentials.name
@@ -103,7 +106,7 @@ function NewUserForm() {
               if (user.error) {
                 window.alert(user.error);
               } else {
-                console.log(user);
+                navigate(`/user/${user.id}`);
               }
             },
           );

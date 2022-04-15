@@ -3,17 +3,18 @@
  */
 // REACT
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 
 // TEST UTILITIES
 import { act } from 'react-dom/test-utils';
 import renderer from 'react-test-renderer';
-import { screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import fetchMock, { enableFetchMocks, resetMocks } from 'jest-fetch-mock';
 // eslint-disable-next-line no-unused-vars
 import { toBeDisabled } from '@testing-library/jest-dom';
-import fetchMock, { enableFetchMocks, resetMocks } from 'jest-fetch-mock';
 
 // COMPONENTS
+import App from '../../App';
 import NewSessionForm from '../NewSessionForm';
 
 // POLYFILLS
@@ -31,11 +32,12 @@ beforeEach(() => {
   meta.setAttribute('name', 'csrf-token');
   meta.setAttribute('content', 'valid-csrf-token');
   document.head.appendChild(meta);
-  act(() => {
-    createRoot(container).render(
-      <NewSessionForm />,
-    );
-  });
+  render(
+    <MemoryRouter initialEntries={['/login']}>
+      <App />
+    </MemoryRouter>,
+    container,
+  );
 });
 
 // GLOBAL TEARDOWN
@@ -47,7 +49,11 @@ afterEach(() => {
 describe('NewSessionForm component', () => {
   describe('STATIC TESTS', () => {
     test('renders correctly from snapshot', () => {
-      const tree = renderer.create(<NewSessionForm />).toJSON();
+      const tree = renderer.create(
+        <BrowserRouter>
+          <NewSessionForm />
+        </BrowserRouter>,
+      ).toJSON();
       expect(tree).toMatchSnapshot();
     });
 
@@ -122,10 +128,10 @@ describe('NewSessionForm component', () => {
     });
 
     describe('login button actions', () => {
-      test('triggers one POST request to /api/session with correct headers and body', () => {
+      test('triggers one POST request to /api/session with correct headers and body', async () => {
         fetchMock.mockResponseOnce(JSON.stringify({ foo: 'bar' }));
 
-        act(() => {
+        await act(async () => {
           fireEvent.change(nameField, { target: { value: 'validName' } });
           fireEvent.change(passwordField, { target: { value: 'password' } });
           fireEvent.click(loginButton);
@@ -142,17 +148,6 @@ describe('NewSessionForm component', () => {
             password: 'password',
           }),
         });
-      });
-      test('successful creation triggers console.log of user object', async () => {
-        fetchMock.mockResponseOnce(JSON.stringify({ user: 'object' }));
-        const logMock = jest.spyOn(console, 'log').mockImplementation();
-        await act(async () => {
-          fireEvent.change(nameField, { target: { value: 'validName' } });
-          fireEvent.change(passwordField, { target: { value: 'password' } });
-          fireEvent.click(loginButton);
-        });
-        expect(logMock).toBeCalled();
-        expect(logMock).toBeCalledWith({ user: 'object' });
       });
       test('login attempt with invalid credentials triggers window alert', async () => {
         fetchMock.mockResponseOnce(JSON.stringify({ error: 'name and/or password incorrect' }));
@@ -180,8 +175,19 @@ describe('NewSessionForm component', () => {
         expect(alertMock).toBeCalled();
         expect(alertMock).toBeCalledWith('An error has occurred: fake error message');
       });
-      test.todo('successful creation triggers navigate call to profile');
       test.todo('successful creation sets current user state');
+    });
+
+    describe('NAVIGATION TESTS', () => {
+      test('successful login triggers navigate call to profile', async () => {
+        fetchMock.mockResponseOnce(JSON.stringify({ name: 'validName', id: 123456 }));
+        await act(async () => {
+          fireEvent.change(nameField, { target: { value: 'validName' } });
+          fireEvent.change(passwordField, { target: { value: 'password' } });
+          fireEvent.click(loginButton);
+        });
+        expect(screen.getByText(/profile for user id:123456/i)).toBeInTheDocument();
+      });
     });
   });
 });

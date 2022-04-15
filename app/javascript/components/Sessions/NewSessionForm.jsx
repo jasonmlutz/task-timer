@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { postRequest } from '../../resources/requests';
 
@@ -7,6 +8,8 @@ function NewSessionForm() {
     name: '',
     password: '',
   });
+
+  const navigate = useNavigate();
 
   function preventLoginFormSubmit() {
     return !credentials.name || !credentials.password;
@@ -35,7 +38,7 @@ function NewSessionForm() {
               if (user.error) {
                 window.alert(user.error);
               } else {
-                console.log(user);
+                navigate(`/user/${user.id}`);
               }
             },
           );

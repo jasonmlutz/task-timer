@@ -3,17 +3,18 @@
  */
 // REACT
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 
 // TEST UTILITIES
 import { act } from 'react-dom/test-utils';
 import renderer from 'react-test-renderer';
-import { fireEvent, screen } from '@testing-library/react';
+import { render, fireEvent, screen } from '@testing-library/react';
+import fetchMock, { enableFetchMocks, resetMocks } from 'jest-fetch-mock';
 // eslint-disable-next-line no-unused-vars
 import { toBeDisabled } from '@testing-library/jest-dom';
-import fetchMock, { enableFetchMocks, resetMocks } from 'jest-fetch-mock';
 
 // COMPONENTS
+import App from '../../App';
 import NewUserForm from '../NewUserForm';
 
 // POLYFILLS
@@ -31,11 +32,13 @@ beforeEach(() => {
   meta.setAttribute('name', 'csrf-token');
   meta.setAttribute('content', 'valid-csrf-token');
   document.head.appendChild(meta);
-  act(() => {
-    createRoot(container).render(
-      <NewUserForm />,
-    );
-  });
+  // history = createMemoryHistory();
+  // history.push('/register');
+  render(
+    <MemoryRouter initialEntries={['/register']}>
+      <App />
+    </MemoryRouter>,
+  );
 });
 
 // GLOBAL TEARDOWN
@@ -47,7 +50,11 @@ afterEach(() => {
 describe('NewUserForm component', () => {
   describe('STATIC TESTS', () => {
     test('renders correctly from snapshot', () => {
-      const tree = renderer.create(<NewUserForm />).toJSON();
+      const tree = renderer.create(
+        <BrowserRouter>
+          <NewUserForm />
+        </BrowserRouter>,
+      ).toJSON();
       expect(tree).toMatchSnapshot();
     });
 
@@ -285,9 +292,9 @@ describe('NewUserForm component', () => {
       });
     });
     describe('submit button action', () => {
-      test('triggers one POST request to /api/users with correct headers and body', () => {
+      test('triggers one POST request to /api/users with correct headers and body', async () => {
         fetchMock.mockResponseOnce(JSON.stringify({ foo: 'bar' }));
-        act(() => {
+        await act(async () => {
           fireEvent.change(nameField, { target: { value: 'validName' } });
           fireEvent.change(passwordField, { target: { value: 'password' } });
           fireEvent.change(passwordConfirmField, { target: { value: 'password' } });
@@ -307,19 +314,6 @@ describe('NewUserForm component', () => {
           }),
         });
       });
-      test('successful creation triggers console.log of user object', async () => {
-        fetchMock.mockResponseOnce(JSON.stringify({ user: 'object' }));
-        const logMock = jest.spyOn(console, 'log').mockImplementation();
-        await act(async () => {
-          fireEvent.change(nameField, { target: { value: 'validName' } });
-          fireEvent.change(passwordField, { target: { value: 'password' } });
-          fireEvent.change(passwordConfirmField, { target: { value: 'password' } });
-          fireEvent.click(registerButton);
-        });
-        expect(logMock).toBeCalled();
-        expect(logMock).toBeCalledWith({ user: 'object' });
-      });
-      test.todo('successful creation triggers navigate call to profile');
       test.todo('successful creation sets current user state');
       test('creation attempt but username unavailable triggers window alert', async () => {
         fetchMock.mockResponseOnce(JSON.stringify({ error: 'name not available' }));
@@ -348,6 +342,19 @@ describe('NewUserForm component', () => {
         });
         expect(alertMock).toBeCalled();
         expect(alertMock).toBeCalledWith('An error has occurred: fake error message');
+      });
+    });
+
+    describe('NAVIGATION TESTS', () => {
+      test('successful creation triggers navigate call to profile', async () => {
+        fetchMock.mockResponseOnce(JSON.stringify({ name: 'validName', id: 123456 }));
+        await act(async () => {
+          fireEvent.change(nameField, { target: { value: 'validName' } });
+          fireEvent.change(passwordField, { target: { value: 'password' } });
+          fireEvent.change(passwordConfirmField, { target: { value: 'password' } });
+          fireEvent.click(registerButton);
+        });
+        expect(screen.getByText(/profile for user id:123456/i));
       });
     });
   });

@@ -3,23 +3,31 @@
  */
 // REACT
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { Router, BrowserRouter } from 'react-router-dom';
+
 // TEST UTILITIES
 import renderer from 'react-test-renderer';
 import { render, screen } from '@testing-library/react';
-// eslint-disable-next-line no-unused-vars
-import { toBeDisabled } from '@testing-library/jest-dom';
+import '@testing-library/jest-dom';
+
+// POLYFILLS
+import '@babel/polyfill'; // for regeneratorRuntime
 
 // COMPONENTS
 import App from '../App';
 
-const renderWithRouter = (ui, { route = '/' } = {}) => {
-  window.history.pushState({}, 'Test page', route);
+// GLOBAL SETUP
+let container;
+beforeEach(() => {
+  container = document.createElement('div');
+  document.body.appendChild(container);
+});
 
-  return {
-    ...render(ui, { wrapper: BrowserRouter }),
-  };
-};
+// GLOBAL TEARDOWN
+afterEach(() => {
+  document.body.removeChild(container);
+  container = null;
+});
 
 describe('App component', () => {
   describe('STATIC TESTS', () => {
@@ -34,15 +42,41 @@ describe('App component', () => {
   });
 
   describe('ROUTING TESTS', () => {
-    test('/register renders NewUserForm', () => {
-      renderWithRouter(<App />, { route: '/register' });
-
-      expect(screen.getByText(/create new account/i)).toBeInTheDocument();
+    test('/ renders Landing', async () => {
+      render(
+        <Router location={{ pathname: '/' }}>
+          <App />
+        </Router>,
+        container,
+      );
+      expect(screen.getByText(/landing/i));
+    });
+    test('/register renders NewUserForm', async () => {
+      render(
+        <Router location={{ pathname: '/register' }}>
+          <App />
+        </Router>,
+        container,
+      );
+      expect(screen.getByText(/create new account/i));
     });
     test('/login renders NewSessionForm', () => {
-      renderWithRouter(<App />, { route: '/login' });
-
-      expect(screen.getByText(/login to your account/i)).toBeInTheDocument();
+      render(
+        <Router location={{ pathname: '/login' }}>
+          <App />
+        </Router>,
+        container,
+      );
+      expect(screen.getByText(/login to your account/i));
+    });
+    test('/user:id renders Profile', () => {
+      render(
+        <Router location={{ pathname: '/user/11235813' }}>
+          <App />
+        </Router>,
+        container,
+      );
+      expect(screen.getByText(/Profile for user id:11235813/i));
     });
   });
 });
