@@ -45,6 +45,7 @@ beforeEach(() => {
 afterEach(() => {
   document.body.removeChild(container);
   container = null;
+  resetMocks();
 });
 
 describe('NewUserForm component', () => {
@@ -251,7 +252,7 @@ describe('NewUserForm component', () => {
     });
     describe('check availability button action', () => {
       test('click triggers one GET request to /api/check_availability/:name', async () => {
-        fetchMock.mockResponseOnce(JSON.stringify({ foo: 'bar' }));
+        fetchMock.mockResponse(JSON.stringify({ foo: 'bar' }));
         jest.spyOn(global, 'fetch');
         await act(async () => {
           fireEvent.change(nameField, { target: { value: 'validName' } });
@@ -261,7 +262,7 @@ describe('NewUserForm component', () => {
         expect(fetch).toHaveBeenCalledWith('/api/check_availability/validName');
       });
       test('name_available: true response triggers matching message', async () => {
-        fetchMock.mockResponseOnce(JSON.stringify({ name_available: true }));
+        fetchMock.mockResponse(JSON.stringify({ name_available: true }));
         await act(async () => {
           fireEvent.change(nameField, { target: { value: 'availableName' } });
           fireEvent.click(checkAvailabilityButton);
@@ -269,7 +270,7 @@ describe('NewUserForm component', () => {
         expect(screen.getByText(/availableName is available!/i)).toBeInTheDocument();
       });
       test('name_available: false response triggers matching message', async () => {
-        fetchMock.mockResponseOnce(JSON.stringify({ name_available: false }));
+        fetchMock.mockResponse(JSON.stringify({ name_available: false }));
         await act(async () => {
           fireEvent.change(nameField, { target: { value: 'unavailableName' } });
           fireEvent.click(checkAvailabilityButton);
@@ -278,7 +279,7 @@ describe('NewUserForm component', () => {
       });
       test('!response.ok triggers window alert', async () => {
         const alertMock = jest.spyOn(window, 'alert').mockImplementation();
-        fetchMock.mockResponseOnce('fail', {
+        fetchMock.mockResponse('fail', {
           headers: { 'content-type': 'text/plain; charset=UTF-8' },
           status: 401,
           statusText: 'check availability button fake error message',
@@ -293,7 +294,7 @@ describe('NewUserForm component', () => {
     });
     describe('submit button action', () => {
       test('triggers one POST request to /api/users with correct headers and body', async () => {
-        fetchMock.mockResponseOnce(JSON.stringify({ foo: 'bar' }));
+        fetchMock.mockResponse(JSON.stringify({ foo: 'bar' }));
         await act(async () => {
           fireEvent.change(nameField, { target: { value: 'validName' } });
           fireEvent.change(passwordField, { target: { value: 'password' } });
@@ -316,7 +317,7 @@ describe('NewUserForm component', () => {
       });
       test.todo('successful creation sets current user state');
       test('creation attempt but username unavailable triggers window alert', async () => {
-        fetchMock.mockResponseOnce(JSON.stringify({ error: 'name not available' }));
+        fetchMock.mockResponse(JSON.stringify({ error: 'name not available' }));
         const alertMock = jest.spyOn(window, 'alert').mockImplementation();
         await act(async () => {
           fireEvent.change(nameField, { target: { value: 'unavailableName' } });
@@ -328,7 +329,7 @@ describe('NewUserForm component', () => {
         expect(alertMock).toBeCalledWith('name not available');
       });
       test('!response.ok triggers alert', async () => {
-        fetchMock.mockResponseOnce('fail', {
+        fetchMock.mockResponse('fail', {
           headers: { 'content-type': 'text/plain; charset=UTF-8' },
           status: 401,
           statusText: 'fake error message',
@@ -347,14 +348,14 @@ describe('NewUserForm component', () => {
 
     describe('NAVIGATION TESTS', () => {
       test('successful creation triggers navigate call to profile', async () => {
-        fetchMock.mockResponseOnce(JSON.stringify({ name: 'validName', id: 123456 }));
+        fetchMock.mockResponse(JSON.stringify({ name: 'validName', id: 123456 }));
         await act(async () => {
           fireEvent.change(nameField, { target: { value: 'validName' } });
           fireEvent.change(passwordField, { target: { value: 'password' } });
           fireEvent.change(passwordConfirmField, { target: { value: 'password' } });
           fireEvent.click(registerButton);
         });
-        expect(screen.getByText(/profile for user id:123456/i));
+        expect(screen.getByText(/profile for user id: 123456/i));
       });
     });
   });

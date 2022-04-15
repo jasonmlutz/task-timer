@@ -44,6 +44,7 @@ beforeEach(() => {
 afterEach(() => {
   document.body.removeChild(container);
   container = null;
+  resetMocks();
 });
 
 describe('NewSessionForm component', () => {
@@ -129,7 +130,7 @@ describe('NewSessionForm component', () => {
 
     describe('login button actions', () => {
       test('triggers one POST request to /api/session with correct headers and body', async () => {
-        fetchMock.mockResponseOnce(JSON.stringify({ foo: 'bar' }));
+        fetchMock.mockResponse(JSON.stringify({ foo: 'bar' }));
 
         await act(async () => {
           fireEvent.change(nameField, { target: { value: 'validName' } });
@@ -150,7 +151,7 @@ describe('NewSessionForm component', () => {
         });
       });
       test('login attempt with invalid credentials triggers window alert', async () => {
-        fetchMock.mockResponseOnce(JSON.stringify({ error: 'name and/or password incorrect' }));
+        fetchMock.mockResponse(JSON.stringify({ error: 'name and/or password incorrect' }));
         const alertMock = jest.spyOn(window, 'alert').mockImplementation();
         await act(async () => {
           fireEvent.change(nameField, { target: { value: 'invalidName' } });
@@ -161,7 +162,7 @@ describe('NewSessionForm component', () => {
         expect(alertMock).toBeCalledWith('name and/or password incorrect');
       });
       test('!response.ok triggers alert', async () => {
-        fetchMock.mockResponseOnce('fail', {
+        fetchMock.mockResponse('fail', {
           headers: { 'content-type': 'text/plain; charset=UTF-8' },
           status: 401,
           statusText: 'fake error message',
@@ -180,13 +181,13 @@ describe('NewSessionForm component', () => {
 
     describe('NAVIGATION TESTS', () => {
       test('successful login triggers navigate call to profile', async () => {
-        fetchMock.mockResponseOnce(JSON.stringify({ name: 'validName', id: 123456 }));
+        fetchMock.mockResponse(JSON.stringify({ name: 'validName', id: 123456 }));
         await act(async () => {
           fireEvent.change(nameField, { target: { value: 'validName' } });
           fireEvent.change(passwordField, { target: { value: 'password' } });
           fireEvent.click(loginButton);
         });
-        expect(screen.getByText(/profile for user id:123456/i)).toBeInTheDocument();
+        expect(screen.getByText(/profile for user id: 123456/i)).toBeInTheDocument();
       });
     });
   });

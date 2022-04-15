@@ -6,9 +6,10 @@ import React from 'react';
 import { Router, BrowserRouter } from 'react-router-dom';
 
 // TEST UTILITIES
-import renderer from 'react-test-renderer';
+import renderer, { act } from 'react-test-renderer';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import fetchMock, { enableFetchMocks, resetMocks } from 'jest-fetch-mock';
 
 // POLYFILLS
 import '@babel/polyfill'; // for regeneratorRuntime
@@ -19,6 +20,9 @@ import App from '../App';
 // GLOBAL SETUP
 let container;
 beforeEach(() => {
+  enableFetchMocks();
+  resetMocks();
+  fetchMock.mockResponse(JSON.stringify({ foo: 'bar' }));
   container = document.createElement('div');
   document.body.appendChild(container);
 });
@@ -49,7 +53,7 @@ describe('App component', () => {
         </Router>,
         container,
       );
-      expect(screen.getByText(/landing/i));
+      expect(screen.getByText(/landing/i)).toBeInTheDocument();
     });
     test('/register renders NewUserForm', async () => {
       render(
@@ -58,7 +62,7 @@ describe('App component', () => {
         </Router>,
         container,
       );
-      expect(screen.getByText(/create new account/i));
+      expect(screen.getByText(/create new account/i)).toBeInTheDocument();
     });
     test('/login renders NewSessionForm', () => {
       render(
@@ -67,16 +71,18 @@ describe('App component', () => {
         </Router>,
         container,
       );
-      expect(screen.getByText(/login to your account/i));
+      expect(screen.getByText(/login to your account/i)).toBeInTheDocument();
     });
-    test('/user:id renders Profile', () => {
-      render(
-        <Router location={{ pathname: '/user/11235813' }}>
-          <App />
-        </Router>,
-        container,
-      );
-      expect(screen.getByText(/Profile for user id:11235813/i));
+    test('/user:id renders Profile', async () => {
+      await act(async () => {
+        render(
+          <Router location={{ pathname: '/user/11235813' }}>
+            <App />
+          </Router>,
+          container,
+        );
+      });
+      expect(screen.getByText(/Profile for user id: 11235813/i));
     });
   });
 });
