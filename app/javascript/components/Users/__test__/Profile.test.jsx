@@ -57,8 +57,8 @@ describe('Profile component', () => {
   describe('DYNAMIC TESTS', () => {
     test('page load triggers api call', () => {
       jest.spyOn(global, 'fetch');
-      expect(fetch).toHaveBeenCalledTimes(1);
-      expect(fetch).toHaveBeenCalledWith('/api/users/11235813');
+      expect(fetch).toBeCalledTimes(1);
+      expect(fetch).toBeCalledWith('/api/users/11235813');
     });
 
     test('fetched user name displays after initial load', () => {

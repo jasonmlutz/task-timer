@@ -137,8 +137,8 @@ describe('NewSessionForm component', () => {
           fireEvent.change(passwordField, { target: { value: 'password' } });
           fireEvent.click(loginButton);
         });
-        expect(fetch).toHaveBeenCalledTimes(1);
-        expect(fetch).toHaveBeenCalledWith('/api/session', {
+        expect(fetch).toBeCalledTimes(1);
+        expect(fetch).toBeCalledWith('/api/session', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -158,7 +158,7 @@ describe('NewSessionForm component', () => {
           fireEvent.change(passwordField, { target: { value: 'incorrectPassword' } });
           fireEvent.click(loginButton);
         });
-        expect(alertMock).toBeCalled();
+        expect(alertMock).toBeCalledTimes(1);
         expect(alertMock).toBeCalledWith('name and/or password incorrect');
       });
       test('!response.ok triggers alert', async () => {
@@ -173,7 +173,7 @@ describe('NewSessionForm component', () => {
           fireEvent.change(passwordField, { target: { value: 'errorTriggeringPassword' } });
           fireEvent.click(loginButton);
         });
-        expect(alertMock).toBeCalled();
+        expect(alertMock).toBeCalledTimes(1);
         expect(alertMock).toBeCalledWith('An error has occurred: fake error message');
       });
       test.todo('successful creation sets current user state');

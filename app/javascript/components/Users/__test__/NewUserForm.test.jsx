@@ -258,8 +258,8 @@ describe('NewUserForm component', () => {
           fireEvent.change(nameField, { target: { value: 'validName' } });
           fireEvent.click(checkAvailabilityButton);
         });
-        expect(fetch).toHaveBeenCalledTimes(1);
-        expect(fetch).toHaveBeenCalledWith('/api/check_availability/validName');
+        expect(fetch).toBeCalledTimes(1);
+        expect(fetch).toBeCalledWith('/api/check_availability/validName');
       });
       test('name_available: true response triggers matching message', async () => {
         fetchMock.mockResponse(JSON.stringify({ name_available: true }));
@@ -288,7 +288,7 @@ describe('NewUserForm component', () => {
           fireEvent.change(nameField, { target: { value: 'unavailableName' } });
           fireEvent.click(checkAvailabilityButton);
         });
-        expect(alertMock).toBeCalled();
+        expect(alertMock).toBeCalledTimes(1);
         expect(alertMock).toBeCalledWith('An error has occurred: check availability button fake error message');
       });
     });
@@ -301,8 +301,8 @@ describe('NewUserForm component', () => {
           fireEvent.change(passwordConfirmField, { target: { value: 'password' } });
           fireEvent.click(registerButton);
         });
-        expect(fetch).toHaveBeenCalledTimes(1);
-        expect(fetch).toHaveBeenCalledWith('/api/users', {
+        expect(fetch).toBeCalledTimes(1);
+        expect(fetch).toBeCalledWith('/api/users', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -325,7 +325,7 @@ describe('NewUserForm component', () => {
           fireEvent.change(passwordConfirmField, { target: { value: 'password' } });
           fireEvent.click(registerButton);
         });
-        expect(alertMock).toBeCalled();
+        expect(alertMock).toBeCalledTimes(1);
         expect(alertMock).toBeCalledWith('name not available');
       });
       test('!response.ok triggers alert', async () => {
@@ -341,7 +341,7 @@ describe('NewUserForm component', () => {
           fireEvent.change(passwordConfirmField, { target: { value: 'password' } });
           fireEvent.click(registerButton);
         });
-        expect(alertMock).toBeCalled();
+        expect(alertMock).toBeCalledTimes(1);
         expect(alertMock).toBeCalledWith('An error has occurred: fake error message');
       });
     });

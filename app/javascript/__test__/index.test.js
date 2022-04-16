@@ -11,7 +11,7 @@ describe('APPLICATION ROOT', () => {
       div.id = 'root';
       document.body.appendChild(div);
       require('../index.jsx');
-      expect(ReactDOM.createRoot).toHaveBeenCalledWith(div);
+      expect(ReactDOM.createRoot).toBeCalledWith(div);
     });
   });
 });
