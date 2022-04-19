@@ -2,8 +2,6 @@
 
 exports[`Profile component STATIC TESTS renders correctly from snapshot 1`] = `
 <div>
-  <div>
-    Profile for user id: 11235813, name: loading ...
-  </div>
+  Profile for user id: 11235813, name: loading ...
 </div>
 `;

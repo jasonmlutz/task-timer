@@ -3,7 +3,7 @@
  */
 // REACT
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 // TEST UTILITIES
 import renderer, { act } from 'react-test-renderer';
 import { render, screen } from '@testing-library/react';
@@ -11,33 +11,29 @@ import fetchMock, { enableFetchMocks, resetMocks } from 'jest-fetch-mock';
 import '@testing-library/jest-dom';
 
 // COMPONENTS
-import App from '../../App';
+import Profile from '../Profile';
 
 // POLYFILLS
 import '@babel/polyfill'; // for regeneratorRuntime
 
 // GLOBAL SETUP
-let container;
 beforeEach(async () => {
   enableFetchMocks();
   resetMocks();
-  container = document.createElement('div');
-  document.body.appendChild(container);
   fetchMock.mockResponse(JSON.stringify({ name: 'jason', id: '11235813' }));
   await act(async () => {
     render(
       <MemoryRouter initialEntries={['/user/11235813']}>
-        <App />
+        <Routes>
+          <Route path="/user/:user_id" element={<Profile />} />
+        </Routes>
       </MemoryRouter>,
-      container,
     );
   });
 });
 
 // GLOBAL TEARDOWN
 afterEach(() => {
-  document.body.removeChild(container);
-  container = null;
   resetMocks();
 });
 
@@ -46,7 +42,9 @@ describe('Profile component', () => {
     test('renders correctly from snapshot', () => {
       const tree = renderer.create(
         <MemoryRouter initialEntries={['/user/11235813']}>
-          <App />
+          <Routes>
+            <Route path="/user/:user_id" element={<Profile />} />
+          </Routes>
         </MemoryRouter>,
       ).toJSON();
 
