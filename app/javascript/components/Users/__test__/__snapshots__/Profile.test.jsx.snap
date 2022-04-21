@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Profile component STATIC TESTS renders correctly from snapshot 1`] = `
+exports[`renders correctly from snapshot 1`] = `
 <div>
-  Profile for user id: 11235813, name: loading ...
+  Profile for user id: 11235813, name: jason
 </div>
 `;

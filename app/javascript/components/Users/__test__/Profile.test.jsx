@@ -1,26 +1,55 @@
 /**
  * @jest-environment jsdom
  */
-// REACT
+// REACT and UTILS
 import React from 'react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-// TEST UTILITIES
-import renderer, { act } from 'react-test-renderer';
-import { render, screen } from '@testing-library/react';
+
+// TEST UTILS
+import { cleanup, render, screen } from '@testing-library/react';
+import { create, act } from 'react-test-renderer';
 import fetchMock, { enableFetchMocks, resetMocks } from 'jest-fetch-mock';
+// toBeInTheDocument
 import '@testing-library/jest-dom';
 
-// COMPONENTS
+// POLYFILLS
+import 'regenerator-runtime'; // for regeneratorRuntime
+
+// COMPONENT
 import Profile from '../Profile';
 
-// POLYFILLS
-import '@babel/polyfill'; // for regeneratorRuntime
+const requests = require('../../../resources/requests');
 
-// GLOBAL SETUP
-beforeEach(async () => {
+beforeAll(() => {
   enableFetchMocks();
+});
+
+beforeEach(() => {
+  fetchMock.mockResponse(JSON.stringify({ id: 11235813, name: 'jason' }));
+});
+
+afterEach(() => {
   resetMocks();
-  fetchMock.mockResponse(JSON.stringify({ name: 'jason', id: '11235813' }));
+  cleanup();
+});
+
+test('renders correctly from snapshot', async () => {
+  let tree;
+  await act(async () => {
+    tree = create(
+      <MemoryRouter initialEntries={['/user/11235813']}>
+        <Routes>
+          <Route path="/user/:user_id" element={<Profile />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+  });
+
+  expect(tree.toJSON()).toMatchSnapshot();
+});
+
+test('page load triggers api call', async () => {
+  jest.spyOn(requests, 'getRequest');
   await act(async () => {
     render(
       <MemoryRouter initialEntries={['/user/11235813']}>
@@ -30,37 +59,19 @@ beforeEach(async () => {
       </MemoryRouter>,
     );
   });
+  expect(requests.getRequest).toBeCalledTimes(1);
+  expect(requests.getRequest).toBeCalledWith('/api/users/11235813', expect.any(Function));
 });
 
-// GLOBAL TEARDOWN
-afterEach(() => {
-  resetMocks();
-});
-
-describe('Profile component', () => {
-  describe('STATIC TESTS', () => {
-    test('renders correctly from snapshot', () => {
-      const tree = renderer.create(
-        <MemoryRouter initialEntries={['/user/11235813']}>
-          <Routes>
-            <Route path="/user/:user_id" element={<Profile />} />
-          </Routes>
-        </MemoryRouter>,
-      ).toJSON();
-
-      expect(tree).toMatchSnapshot();
-    });
+test('fetched user name displays after initial load', async () => {
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/user/11235813']}>
+        <Routes>
+          <Route path="/user/:user_id" element={<Profile />} />
+        </Routes>
+      </MemoryRouter>,
+    );
   });
-
-  describe('DYNAMIC TESTS', () => {
-    test('page load triggers api call', () => {
-      jest.spyOn(global, 'fetch');
-      expect(fetch).toBeCalledTimes(1);
-      expect(fetch).toBeCalledWith('/api/users/11235813');
-    });
-
-    test('fetched user name displays after initial load', () => {
-      expect(screen.getByText(/name: jason/i)).toBeInTheDocument();
-    });
-  });
+  expect(screen.getByText(/name: jason/i)).toBeInTheDocument();
 });

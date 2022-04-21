@@ -6,9 +6,11 @@ import React from 'react';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 
 // TEST UTILITIES
-import { act } from 'react-dom/test-utils';
-import renderer from 'react-test-renderer';
-import { render, screen, fireEvent } from '@testing-library/react';
+import renderer, { act } from 'react-test-renderer';
+import {
+  render, screen, cleanup,
+} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import fetchMock, { enableFetchMocks, resetMocks } from 'jest-fetch-mock';
 // eslint-disable-next-line no-unused-vars
 import { toBeDisabled } from '@testing-library/jest-dom';
@@ -18,7 +20,9 @@ import App from '../../App';
 import NewSessionForm from '../NewSessionForm';
 
 // POLYFILLS
-import '@babel/polyfill'; // for regeneratorRuntime
+import 'regenerator-runtime';
+
+const requests = require('../../../resources/requests'); // for regeneratorRuntime
 
 // GLOBAL SETUP
 let container;
@@ -44,7 +48,9 @@ beforeEach(() => {
 afterEach(() => {
   document.body.removeChild(container);
   container = null;
+  jest.clearAllMocks();
   resetMocks();
+  cleanup();
 });
 
 describe('NewSessionForm component', () => {
@@ -99,19 +105,24 @@ describe('NewSessionForm component', () => {
     });
 
     describe('name field', () => {
-      test('name field accepts input', () => {
-        act(() => {
-          fireEvent.change(nameField, { target: { value: 'validName' } });
+      test('name field accepts input', async () => {
+        const user = userEvent.setup();
+        await act(async () => {
+          await user.click(nameField);
+          await user.keyboard('validName');
         });
         expect(nameField.value).toBe('validName');
       });
     });
 
     describe('login button with valid field values', () => {
-      beforeEach(() => {
-        act(() => {
-          fireEvent.change(nameField, { target: { value: 'validName' } });
-          fireEvent.change(passwordField, { target: { value: 'goodPassword' } });
+      beforeEach(async () => {
+        const user = userEvent.setup();
+        await act(async () => {
+          await user.click(nameField);
+          await user.keyboard('validName');
+          await user.click(passwordField);
+          await user.keyboard('validPassword');
         });
       });
       test('button is enabled', () => {
@@ -129,37 +140,43 @@ describe('NewSessionForm component', () => {
     });
 
     describe('login button actions', () => {
-      test('triggers one POST request to /api/session with correct headers and body', async () => {
-        fetchMock.mockResponse(JSON.stringify({ foo: 'bar' }));
+      let user;
+      beforeEach(async () => {
+        user = userEvent.setup();
 
         await act(async () => {
-          fireEvent.change(nameField, { target: { value: 'validName' } });
-          fireEvent.change(passwordField, { target: { value: 'password' } });
-          fireEvent.click(loginButton);
-        });
-        expect(fetch).toBeCalledTimes(1);
-        expect(fetch).toBeCalledWith('/api/session', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': 'valid-csrf-token',
-          },
-          body: JSON.stringify({
-            name: 'validName',
-            password: 'password',
-          }),
+          await user.click(nameField);
+          await user.keyboard('validName');
+          await user.click(passwordField);
+          await user.keyboard('validPassword');
         });
       });
+
+      test('triggers one POST request to /api/session with correct headers and body', async () => {
+        fetchMock.mockResponse(JSON.stringify({ foo: 'bar' }));
+        jest.spyOn(requests, 'postRequest');
+        await act(async () => {
+          await user.click(loginButton);
+        });
+        expect(requests.postRequest).toBeCalledTimes(1);
+        expect(requests.postRequest).toBeCalledWith(
+          {
+            name: 'validName',
+            password: 'validPassword',
+          },
+          '/api/session',
+          expect.any(Function),
+        );
+      });
+
       test('login attempt with invalid credentials triggers window alert', async () => {
         fetchMock.mockResponse(JSON.stringify({ error: 'name and/or password incorrect' }));
-        const alertMock = jest.spyOn(window, 'alert').mockImplementation();
+        jest.spyOn(window, 'alert').mockImplementation();
         await act(async () => {
-          fireEvent.change(nameField, { target: { value: 'invalidName' } });
-          fireEvent.change(passwordField, { target: { value: 'incorrectPassword' } });
-          fireEvent.click(loginButton);
+          await user.click(loginButton);
         });
-        expect(alertMock).toBeCalledTimes(1);
-        expect(alertMock).toBeCalledWith('name and/or password incorrect');
+        expect(alert).toBeCalledTimes(1);
+        expect(alert).toBeCalledWith('name and/or password incorrect');
       });
       test('!response.ok triggers alert', async () => {
         fetchMock.mockResponse('fail', {
@@ -167,25 +184,19 @@ describe('NewSessionForm component', () => {
           status: 401,
           statusText: 'fake error message',
         });
-        const alertMock = jest.spyOn(window, 'alert').mockImplementation();
+        jest.spyOn(window, 'alert').mockImplementation();
         await act(async () => {
-          fireEvent.change(nameField, { target: { value: 'errorTriggeringName' } });
-          fireEvent.change(passwordField, { target: { value: 'errorTriggeringPassword' } });
-          fireEvent.click(loginButton);
+          await user.click(loginButton);
         });
-        expect(alertMock).toBeCalledTimes(1);
-        expect(alertMock).toBeCalledWith('An error has occurred: fake error message');
+        expect(alert).toBeCalledTimes(1);
+        expect(alert).toBeCalledWith('An error has occurred: fake error message');
       });
       test.todo('successful creation sets current user state');
-    });
 
-    describe('NAVIGATION TESTS', () => {
       test('successful login triggers navigate call to profile', async () => {
         fetchMock.mockResponse(JSON.stringify({ name: 'validName', id: 123456 }));
         await act(async () => {
-          fireEvent.change(nameField, { target: { value: 'validName' } });
-          fireEvent.change(passwordField, { target: { value: 'password' } });
-          fireEvent.click(loginButton);
+          await user.click(loginButton);
         });
         expect(screen.getByText(/profile for user id: 123456/i)).toBeInTheDocument();
       });

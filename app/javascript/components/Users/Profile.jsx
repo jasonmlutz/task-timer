@@ -12,7 +12,7 @@ function Profile() {
     getRequest(`/api/users/${id}`, (response) => {
       setName(response.name);
     });
-  }, [id]);
+  }, []);
 
   return (
     <div>

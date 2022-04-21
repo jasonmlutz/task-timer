@@ -12,7 +12,7 @@ import '@testing-library/jest-dom';
 import fetchMock, { enableFetchMocks, resetMocks } from 'jest-fetch-mock';
 
 // POLYFILLS
-import '@babel/polyfill'; // for regeneratorRuntime
+import 'regenerator-runtime'; // for regeneratorRuntime
 
 // COMPONENTS
 import App from '../App';

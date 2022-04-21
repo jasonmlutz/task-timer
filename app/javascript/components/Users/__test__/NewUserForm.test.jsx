@@ -3,12 +3,13 @@
  */
 // REACT
 import React from 'react';
+import ReactDOM from 'react-dom/client';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 
 // TEST UTILITIES
-import { act } from 'react-dom/test-utils';
-import renderer from 'react-test-renderer';
-import { render, fireEvent, screen } from '@testing-library/react';
+import renderer, { act } from 'react-test-renderer';
+import { cleanup, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import fetchMock, { enableFetchMocks, resetMocks } from 'jest-fetch-mock';
 // eslint-disable-next-line no-unused-vars
 import { toBeDisabled } from '@testing-library/jest-dom';
@@ -18,34 +19,38 @@ import App from '../../App';
 import NewUserForm from '../NewUserForm';
 
 // POLYFILLS
-import '@babel/polyfill'; // for regeneratorRuntime
+import 'regenerator-runtime'; // for regeneratorRuntime
+
+const requests = require('../../../resources/requests');
 
 // GLOBAL SETUP
 let container;
 beforeEach(() => {
   enableFetchMocks();
-  resetMocks();
   container = document.createElement('div');
+  const root = ReactDOM.createRoot(container);
   document.body.appendChild(container);
   // POST, PATCH, DELETE requests expect to find the X-CSRF-TOKEN to send to Rails
   const meta = document.createElement('meta');
   meta.setAttribute('name', 'csrf-token');
   meta.setAttribute('content', 'valid-csrf-token');
   document.head.appendChild(meta);
-  // history = createMemoryHistory();
-  // history.push('/register');
-  render(
-    <MemoryRouter initialEntries={['/register']}>
-      <App />
-    </MemoryRouter>,
-  );
+  act(() => {
+    root.render(
+      <MemoryRouter initialEntries={['/register']}>
+        <App />
+      </MemoryRouter>,
+    );
+  });
 });
 
 // GLOBAL TEARDOWN
 afterEach(() => {
   document.body.removeChild(container);
   container = null;
+  jest.clearAllMocks();
   resetMocks();
+  cleanup();
 });
 
 describe('NewUserForm component', () => {
@@ -142,13 +147,15 @@ describe('NewUserForm component', () => {
     });
 
     describe('register button with valid field values', () => {
-      beforeEach(() => {
-        act(() => {
-          fireEvent.change(nameField, { target: { value: 'validName' } });
-          fireEvent.change(passwordField, { target: { value: 'goodPassword' } });
-          fireEvent.change(passwordConfirmField, {
-            target: { value: 'goodPassword' },
-          });
+      beforeEach(async () => {
+        const user = userEvent.setup();
+        await act(async () => {
+          await user.click(nameField);
+          await user.keyboard('validName');
+          await user.click(passwordField);
+          await user.keyboard('goodPassword');
+          await user.click(passwordConfirmField);
+          await user.keyboard('goodPassword');
         });
       });
 
@@ -167,9 +174,11 @@ describe('NewUserForm component', () => {
     });
 
     describe('check availability button with name input', () => {
-      beforeEach(() => {
-        act(() => {
-          fireEvent.change(nameField, { target: { value: 'validName' } });
+      beforeEach(async () => {
+        const user = userEvent.setup();
+        await act(async () => {
+          await user.click(nameField);
+          await user.keyboard('validName');
         });
       });
 
@@ -188,53 +197,56 @@ describe('NewUserForm component', () => {
     });
 
     describe('password fields', () => {
-      test('password fields accept input', () => {
-        act(() => {
-          fireEvent.change(passwordField, { target: { value: 'firstPassword' } });
-          fireEvent.change(passwordConfirmField, {
-            target: { value: 'secondPassword' },
-          });
+      test('password fields accept input', async () => {
+        const user = userEvent.setup();
+        await act(async () => {
+          await user.click(passwordField);
+          await user.keyboard('firstPassword');
+          await user.click(passwordConfirmField);
+          await user.keyboard('secondPassword');
         });
         expect(passwordField.value).toBe('firstPassword');
         expect(passwordConfirmField.value).toBe('secondPassword');
       });
 
       describe('password validation message & warning', () => {
-        test('non-empty non-matching passwords reveal warning', () => {
-          act(() => {
-            fireEvent.change(passwordField, { target: { value: 'password' } });
-            fireEvent.change(passwordConfirmField, {
-              target: { value: 'badPassword' },
-            });
+        test('non-empty non-matching passwords reveal warning', async () => {
+          const user = userEvent.setup();
+          await act(async () => {
+            await user.click(passwordField);
+            await user.keyboard('firstPassword');
+            await user.click(passwordConfirmField);
+            await user.keyboard('secondPassword');
           });
           expect(screen.queryByText(/passwords do not match/i)).not.toBeNull();
         });
 
-        test('matching passwords reveal matching message', () => {
-          act(() => {
-            fireEvent.change(passwordField, { target: { value: 'password' } });
-            fireEvent.change(passwordConfirmField, {
-              target: { value: 'password' },
-            });
+        test('matching passwords reveal matching message', async () => {
+          const user = userEvent.setup();
+          await act(async () => {
+            await user.click(passwordField);
+            await user.keyboard('firstPassword');
+            await user.click(passwordConfirmField);
+            await user.keyboard('firstPassword');
           });
           expect(screen.queryByText(/passwords match/i)).not.toBeNull();
         });
 
-        test('neigher message nor warning shown when only password is empty', () => {
-          act(() => {
-            fireEvent.change(passwordConfirmField, {
-              target: { value: 'password' },
-            });
+        test('neither message nor warning shown when only password is empty', async () => {
+          const user = userEvent.setup();
+          await act(async () => {
+            await user.click(passwordConfirmField);
+            await user.keyboard('secondPassword');
           });
           expect(screen.queryByText(/passwords do not match/i)).toBeNull();
           expect(screen.queryByText(/passwords match/i)).toBeNull();
         });
 
-        test('neigher message nor warning shown when only password confirmation is hidden', () => {
-          act(() => {
-            fireEvent.change(passwordConfirmField, {
-              target: { value: 'password' },
-            });
+        test('neither message nor warning shown when only password confirmation is empty', async () => {
+          const user = userEvent.setup();
+          await act(async () => {
+            await user.click(passwordField);
+            await user.keyboard('firstPassword');
           });
           expect(screen.queryByText(/passwords do not match/i)).toBeNull();
           expect(screen.queryByText(/passwords match/i)).toBeNull();
@@ -243,9 +255,11 @@ describe('NewUserForm component', () => {
     });
 
     describe('name field', () => {
-      test('name field accepts input', () => {
-        act(() => {
-          fireEvent.change(nameField, { target: { value: 'validName' } });
+      test('name field accepts input', async () => {
+        const user = userEvent.setup();
+        await act(async () => {
+          await user.click(nameField);
+          await user.keyboard('validName');
         });
         expect(nameField.value).toBe('validName');
       });
@@ -253,40 +267,48 @@ describe('NewUserForm component', () => {
     describe('check availability button action', () => {
       test('click triggers one GET request to /api/check_availability/:name', async () => {
         fetchMock.mockResponse(JSON.stringify({ foo: 'bar' }));
-        jest.spyOn(global, 'fetch');
+        jest.spyOn(requests, 'getRequest');
+        const user = userEvent.setup();
         await act(async () => {
-          fireEvent.change(nameField, { target: { value: 'validName' } });
-          fireEvent.click(checkAvailabilityButton);
+          await user.click(nameField);
+          await user.keyboard('validName');
+          await user.click(checkAvailabilityButton);
         });
-        expect(fetch).toBeCalledTimes(1);
-        expect(fetch).toBeCalledWith('/api/check_availability/validName');
+        expect(requests.getRequest).toBeCalledTimes(1);
+        expect(requests.getRequest).toBeCalledWith('/api/check_availability/validName', expect.any(Function));
       });
       test('name_available: true response triggers matching message', async () => {
         fetchMock.mockResponse(JSON.stringify({ name_available: true }));
+        const user = userEvent.setup();
         await act(async () => {
-          fireEvent.change(nameField, { target: { value: 'availableName' } });
-          fireEvent.click(checkAvailabilityButton);
+          await user.click(nameField);
+          await user.keyboard('availableName');
+          await user.click(checkAvailabilityButton);
         });
         expect(screen.getByText(/availableName is available!/i)).toBeInTheDocument();
       });
       test('name_available: false response triggers matching message', async () => {
         fetchMock.mockResponse(JSON.stringify({ name_available: false }));
+        const user = userEvent.setup();
         await act(async () => {
-          fireEvent.change(nameField, { target: { value: 'unavailableName' } });
-          fireEvent.click(checkAvailabilityButton);
+          await user.click(nameField);
+          await user.keyboard('unavailableName');
+          await user.click(checkAvailabilityButton);
         });
         expect(screen.getByText(/unavailableName is not available!/i)).toBeInTheDocument();
       });
       test('!response.ok triggers window alert', async () => {
-        const alertMock = jest.spyOn(window, 'alert').mockImplementation();
+        const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {});
         fetchMock.mockResponse('fail', {
           headers: { 'content-type': 'text/plain; charset=UTF-8' },
           status: 401,
           statusText: 'check availability button fake error message',
         });
+        const user = userEvent.setup();
         await act(async () => {
-          fireEvent.change(nameField, { target: { value: 'unavailableName' } });
-          fireEvent.click(checkAvailabilityButton);
+          await user.click(nameField);
+          await user.keyboard('unavailableName');
+          await user.click(checkAvailabilityButton);
         });
         expect(alertMock).toBeCalledTimes(1);
         expect(alertMock).toBeCalledWith('An error has occurred: check availability button fake error message');
@@ -295,35 +317,41 @@ describe('NewUserForm component', () => {
     describe('submit button action', () => {
       test('triggers one POST request to /api/users with correct headers and body', async () => {
         fetchMock.mockResponse(JSON.stringify({ foo: 'bar' }));
+        jest.spyOn(requests, 'postRequest');
+        const user = userEvent.setup();
         await act(async () => {
-          fireEvent.change(nameField, { target: { value: 'validName' } });
-          fireEvent.change(passwordField, { target: { value: 'password' } });
-          fireEvent.change(passwordConfirmField, { target: { value: 'password' } });
-          fireEvent.click(registerButton);
+          await user.click(nameField);
+          await user.keyboard('validName');
+          await user.click(passwordField);
+          await user.keyboard('password');
+          await user.click(passwordConfirmField);
+          await user.keyboard('password');
+          await user.click(registerButton);
         });
-        expect(fetch).toBeCalledTimes(1);
-        expect(fetch).toBeCalledWith('/api/users', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': 'valid-csrf-token',
-          },
-          body: JSON.stringify({
+        expect(requests.postRequest).toBeCalledTimes(1);
+        expect(requests.postRequest).toBeCalledWith(
+          {
             name: 'validName',
             password: 'password',
             password_confirmation: 'password',
-          }),
-        });
+          },
+          '/api/users',
+          expect.any(Function),
+        );
       });
       test.todo('successful creation sets current user state');
       test('creation attempt but username unavailable triggers window alert', async () => {
         fetchMock.mockResponse(JSON.stringify({ error: 'name not available' }));
-        const alertMock = jest.spyOn(window, 'alert').mockImplementation();
+        const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {});
+        const user = userEvent.setup();
         await act(async () => {
-          fireEvent.change(nameField, { target: { value: 'unavailableName' } });
-          fireEvent.change(passwordField, { target: { value: 'password' } });
-          fireEvent.change(passwordConfirmField, { target: { value: 'password' } });
-          fireEvent.click(registerButton);
+          await user.click(nameField);
+          await user.keyboard('unavailableName');
+          await user.click(passwordField);
+          await user.keyboard('password');
+          await user.click(passwordConfirmField);
+          await user.keyboard('password');
+          await user.click(registerButton);
         });
         expect(alertMock).toBeCalledTimes(1);
         expect(alertMock).toBeCalledWith('name not available');
@@ -334,12 +362,16 @@ describe('NewUserForm component', () => {
           status: 401,
           statusText: 'fake error message',
         });
-        const alertMock = jest.spyOn(window, 'alert').mockImplementation();
+        const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {});
+        const user = userEvent.setup();
         await act(async () => {
-          fireEvent.change(nameField, { target: { value: 'unavailableName' } });
-          fireEvent.change(passwordField, { target: { value: 'password' } });
-          fireEvent.change(passwordConfirmField, { target: { value: 'password' } });
-          fireEvent.click(registerButton);
+          await user.click(nameField);
+          await user.keyboard('unavailableName');
+          await user.click(passwordField);
+          await user.keyboard('password');
+          await user.click(passwordConfirmField);
+          await user.keyboard('password');
+          await user.click(registerButton);
         });
         expect(alertMock).toBeCalledTimes(1);
         expect(alertMock).toBeCalledWith('An error has occurred: fake error message');
@@ -349,11 +381,15 @@ describe('NewUserForm component', () => {
     describe('NAVIGATION TESTS', () => {
       test('successful creation triggers navigate call to profile', async () => {
         fetchMock.mockResponse(JSON.stringify({ name: 'validName', id: 123456 }));
+        const user = userEvent.setup();
         await act(async () => {
-          fireEvent.change(nameField, { target: { value: 'validName' } });
-          fireEvent.change(passwordField, { target: { value: 'password' } });
-          fireEvent.change(passwordConfirmField, { target: { value: 'password' } });
-          fireEvent.click(registerButton);
+          await user.click(nameField);
+          await user.keyboard('validName');
+          await user.click(passwordField);
+          await user.keyboard('password');
+          await user.click(passwordConfirmField);
+          await user.keyboard('password');
+          await user.click(registerButton);
         });
         expect(screen.getByText(/profile for user id: 123456/i));
       });
